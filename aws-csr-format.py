@@ -40,7 +40,7 @@ if __name__ == "__main__":
     # Grab the input filename for convertion to output filename
     input_file = sys.argv[1]
     temp = input_file.split('.')
-    output_file = (temp[0] + "-new2.txt")
+    output_file = (temp[0] + "-new.txt")
     #output_file = (output_file + "-new.txt")
     
     # Define the header regex
