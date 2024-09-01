@@ -41,7 +41,6 @@ if __name__ == "__main__":
     input_file = sys.argv[1]
     temp = input_file.split('.')
     output_file = (temp[0] + "-new.txt")
-    #output_file = (output_file + "-new.txt")
     
     # Define the header regex
     header = "-----"
