@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSR Format Fixer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Syne:wght@400;600;800&display=swap');
+
+  :root {
+    --bg: #0a0c10;
+    --surface: #111318;
+    --surface2: #181c24;
+    --border: #252a35;
+    --accent: #00e5a0;
+    --accent2: #0099ff;
+    --warn: #ff6b35;
+    --ok: #00e5a0;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,160,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,160,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  header {
+    position: relative;
+    z-index: 1;
+    padding: 32px 48px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .logo-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 14px;
+    color: #000;
+    flex-shrink: 0;
+    box-shadow: 0 0 20px rgba(0,229,160,0.3);
+  }
+
+  h1 {
+    font-family: var(--sans);
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+
+  h1 span {
+    color: var(--accent);
+  }
+
+  .subtitle {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+    letter-spacing: 0.05em;
+  }
+
+  main {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    padding: 32px 48px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  /* Drop zone */
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: 16px;
+    padding: 48px 32px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    background: var(--surface);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .drop-zone::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 50%, rgba(0,229,160,0.05) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .drop-zone:hover,
+  .drop-zone.dragover {
+    border-color: var(--accent);
+    background: var(--surface2);
+    box-shadow: 0 0 40px rgba(0,229,160,0.08), inset 0 0 60px rgba(0,229,160,0.04);
+  }
+
+  .drop-zone:hover::before,
+  .drop-zone.dragover::before {
+    opacity: 1;
+  }
+
+  .drop-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+    display: block;
+    filter: grayscale(0.4);
+  }
+
+  .drop-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .drop-sub {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .or-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 12px 0;
+  }
+
+  .or-divider::before,
+  .or-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .or-divider span {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #000;
+    box-shadow: 0 0 20px rgba(0,229,160,0.2);
+  }
+
+  .btn-primary:hover {
+    background: #00ffc0;
+    box-shadow: 0 0 30px rgba(0,229,160,0.4);
+    transform: translateY(-1px);
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .btn-copy {
+    background: var(--surface2);
+    color: var(--accent2);
+    border: 1px solid var(--border);
+    font-size: 11px;
+    padding: 6px 12px;
+  }
+
+  .btn-copy:hover {
+    border-color: var(--accent2);
+    box-shadow: 0 0 12px rgba(0,153,255,0.2);
+  }
+
+  #fileInput { display: none; }
+
+  /* Results */
+  .results-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  @media (max-width: 900px) {
+    .results-grid { grid-template-columns: 1fr; }
+    main { padding: 24px; }
+    header { padding: 24px; }
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .panel-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface2);
+  }
+
+  .panel-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .badge-warn {
+    background: rgba(255,107,53,0.12);
+    color: var(--warn);
+    border: 1px solid rgba(255,107,53,0.3);
+  }
+
+  .badge-ok {
+    background: rgba(0,229,160,0.1);
+    color: var(--ok);
+    border: 1px solid rgba(0,229,160,0.25);
+  }
+
+  .badge-info {
+    background: rgba(0,153,255,0.1);
+    color: var(--accent2);
+    border: 1px solid rgba(0,153,255,0.25);
+  }
+
+  .code-area {
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.7;
+    padding: 16px 18px;
+    overflow: auto;
+    flex: 1;
+    white-space: pre-wrap;
+    word-break: break-all;
+    color: var(--text);
+    min-height: 220px;
+    max-height: 360px;
+  }
+
+  .line-warn { background: rgba(255,107,53,0.1); color: var(--warn); border-left: 2px solid var(--warn); padding-left: 6px; margin-left: -6px; display: block; }
+  .line-header { color: var(--accent); font-weight: 600; }
+  .line-body { color: #94a3b8; }
+
+  /* Issues list */
+  .issues-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  .issues-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .issue-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 12px;
+    animation: fadeSlide 0.3s ease forwards;
+    opacity: 0;
+  }
+
+  .issue-item:last-child { border-bottom: none; }
+
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateX(-8px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .issue-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+  .issue-text { color: var(--text); line-height: 1.5; }
+  .issue-detail { color: var(--muted); font-size: 11px; margin-top: 2px; }
+
+  .issue-fixed {
+    color: var(--accent);
+    font-size: 11px;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .no-issues {
+    padding: 28px 18px;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .summary-bar {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .stat strong {
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .download-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    border-top: 1px solid var(--border);
+    background: var(--surface2);
+  }
+
+  .download-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .hidden { display: none !important; }
+
+  .pulse {
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  /* Paste area */
+  .paste-section {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  textarea.csr-paste {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 12px;
+    resize: vertical;
+    min-height: 80px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  textarea.csr-paste:focus {
+    border-color: var(--accent2);
+    box-shadow: 0 0 0 2px rgba(0,153,255,0.1);
+  }
+
+  textarea.csr-paste::placeholder {
+    color: var(--muted);
+    font-size: 11px;
+  }
+
+  /* CSR Details panel */
+  .details-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    animation: fadeSlide 0.3s ease forwards;
+  }
+
+  .details-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 0;
+  }
+
+  .detail-item {
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+  }
+
+  .detail-item:nth-child(even) { border-right: none; }
+
+  .detail-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  .detail-value {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+    word-break: break-all;
+  }
+
+  .detail-value.accent { color: var(--accent); }
+  .detail-value.accent2 { color: var(--accent2); }
+
+  .san-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+  }
+
+  .san-tag {
+    background: rgba(0,153,255,0.1);
+    border: 1px solid rgba(0,153,255,0.25);
+    color: var(--accent2);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  .detail-section-title {
+    grid-column: 1 / -1;
+    padding: 10px 18px 6px;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border-bottom: 1px solid var(--border);
+    background: rgba(0,229,160,0.03);
+  }
+
+  .detail-parse-error {
+    padding: 20px 18px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--warn);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-icon">CSR</div>
+  <div>
+    <h1>CSR <span>Format</span> Fixer</h1>
+    <div class="subtitle">Validates &amp; corrects PEM line lengths and header/footer format</div>
+  </div>
+</header>
+
+<main>
+
+  <!-- Drop / Upload -->
+  <div class="drop-zone" id="dropZone">
+    <span class="drop-icon">🔐</span>
+    <div class="drop-title">Drop your CSR file here</div>
+    <div class="drop-sub">.csr · .pem · .txt — any PEM-encoded certificate request</div>
+    <div class="or-divider"><span>or</span></div>
+    <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+      📂 Open File
+    </button>
+    <input type="file" id="fileInput" accept=".csr,.pem,.txt,text/*">
+  </div>
+
+  <!-- Paste -->
+  <div class="paste-section">
+    <textarea class="csr-paste" id="pasteCsr" placeholder="…or paste CSR text directly here and click Analyze"></textarea>
+    <button class="btn btn-primary" onclick="analyzeFromPaste()" style="margin-top:2px;white-space:nowrap">▶ Analyze</button>
+  </div>
+
+  <!-- Issues panel -->
+  <div class="issues-panel hidden" id="issuesPanel">
+    <div class="issues-header">
+      <span class="panel-title">⚠ Detected Issues</span>
+      <div class="summary-bar" id="summaryBar"></div>
+    </div>
+    <div id="issuesList"></div>
+  </div>
+
+  <!-- Before / After -->
+  <div class="results-grid hidden" id="resultsGrid">
+    <!-- Before -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">📄 Original CSR</span>
+        <span class="badge badge-warn" id="beforeBadge"></span>
+      </div>
+      <div class="code-area" id="beforeCode"></div>
+      <div class="download-bar">
+        <span class="download-label">Actions:</span>
+        <button class="btn btn-copy" onclick="copyText('before')">⎘ Copy</button>
+      </div>
+    </div>
+
+    <!-- After -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">✅ Fixed CSR</span>
+        <span class="badge badge-ok" id="afterBadge"></span>
+      </div>
+      <div class="code-area" id="afterCode"></div>
+      <div class="download-bar">
+        <span class="download-label">Actions:</span>
+        <button class="btn btn-copy" onclick="copyText('after')">⎘ Copy</button>
+        <button class="btn btn-primary" onclick="downloadFixed()" id="dlBtn">⬇ Download Fixed</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- CSR Details -->
+  <div class="details-panel hidden" id="detailsPanel">
+    <div class="details-header">
+      <span class="panel-title">🔍 CSR Contents</span>
+      <span class="badge badge-info" id="detailsBadge">Decoded</span>
+    </div>
+    <div id="detailsGrid" class="details-grid"></div>
+  </div>
+
+</main>
+
+<script>
+  const VALID_HEADER = '-----BEGIN CERTIFICATE REQUEST-----';
+  const VALID_FOOTER = '-----END CERTIFICATE REQUEST-----';
+
+  let originalText = '';
+  let fixedText = '';
+  let inputFileName = '';
+
+  // ─── Drag & Drop ───────────────────────────────────────────
+  const dropZone = document.getElementById('dropZone');
+
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file) readFile(file);
+  });
+
+  document.getElementById('fileInput').addEventListener('change', e => {
+    if (e.target.files[0]) readFile(e.target.files[0]);
+  });
+
+  function readFile(file) {
+    inputFileName = file.name;
+    const reader = new FileReader();
+    reader.onload = ev => processCSR(ev.target.result);
+    reader.readAsText(file);
+  }
+
+  function analyzeFromPaste() {
+    const val = document.getElementById('pasteCsr').value.trim();
+    if (val) processCSR(val);
+  }
+
+  // ─── Helpers ───────────────────────────────────────────────
+  function wrapAt64(str) {
+    const out = [];
+    for (let i = 0; i < str.length; i += 64) out.push(str.slice(i, i + 64));
+    return out;
+  }
+
+  function escHtml(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  // ─── Core CSR Processor ────────────────────────────────────
+  function processCSR(raw) {
+    originalText = raw;
+
+    // Normalize line endings, split, strip trailing blanks
+    const lines = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+    while (lines.length && lines[lines.length - 1].trim() === '') lines.pop();
+
+    const issues = [];
+
+    // ── Detect header/footer by -----...-----  delimiters (any word order) ──
+    const delimRe = /^-----[^-]+-----$/;
+    const delimIdxs = lines.reduce(function(acc, l, i) {
+      if (delimRe.test(l.trim())) acc.push(i); return acc;
+    }, []);
+    const headerIdx = delimIdxs.length > 0 ? delimIdxs[0] : -1;
+    const footerIdx = delimIdxs.length > 1 ? delimIdxs[delimIdxs.length - 1] : -1;
+
+    // ── Check header ──
+    if (headerIdx === -1) {
+      issues.push({ icon: '🚫', title: 'Missing PEM header', detail: 'No -----...------ delimiter line found', fix: 'Header added: ' + VALID_HEADER });
+    } else if (lines[headerIdx].trim() !== VALID_HEADER) {
+      issues.push({ icon: '🔤', title: 'Non-standard header', detail: 'Line ' + (headerIdx + 1) + ': "' + lines[headerIdx].trim() + '"', fix: 'Replaced with: ' + VALID_HEADER });
+    }
+
+    // ── Check footer ──
+    if (footerIdx === -1 || footerIdx === headerIdx) {
+      issues.push({ icon: '🚫', title: 'Missing PEM footer', detail: 'No closing -----...------ delimiter line found', fix: 'Footer added: ' + VALID_FOOTER });
+    } else if (lines[footerIdx].trim() !== VALID_FOOTER) {
+      issues.push({ icon: '🔤', title: 'Non-standard footer', detail: 'Line ' + (footerIdx + 1) + ': "' + lines[footerIdx].trim() + '"', fix: 'Replaced with: ' + VALID_FOOTER });
+    }
+
+    // ── Check line lengths (body only) ──
+    const longLines = [];
+    lines.forEach(function(line, i) {
+      const t = line.trim();
+      if (!/^-----BEGIN|^-----END/i.test(t) && t.length > 64) {
+        longLines.push({ lineNum: i + 1, len: t.length });
+      }
+    });
+    if (longLines.length > 0) {
+      const preview = longLines.slice(0, 3).map(function(l) { return 'Line ' + l.lineNum + ' (' + l.len + ' chars)'; }).join(', ');
+      const extra = longLines.length > 3 ? ' +' + (longLines.length - 3) + ' more' : '';
+      issues.push({ icon: '📏', title: longLines.length + ' body line' + (longLines.length > 1 ? 's' : '') + ' exceed 64 characters', detail: preview + extra, fix: 'Base64 body re-wrapped to 64-char lines' });
+    }
+
+    // ── Build fixed CSR ──
+    // Extract body lines between first and last delimiter
+    let rawB64 = '';
+    if (headerIdx !== -1 && footerIdx !== -1 && footerIdx > headerIdx) {
+      for (let i = headerIdx + 1; i < footerIdx; i++) {
+        rawB64 += lines[i].trim();
+      }
+    }
+
+    const fixedParts = [VALID_HEADER].concat(wrapAt64(rawB64)).concat([VALID_FOOTER]);
+    fixedText = fixedParts.join('\n') + '\n';
+
+    // ── Render ──
+    renderResults(lines, fixedParts, issues, longLines);
+    if (rawB64.length > 0) renderDetails(rawB64);
+  }
+
+  // ─── Rendering ─────────────────────────────────────────────
+  function renderResults(originalLines, fixedLines, issues, longLineNums) {
+    const longSet = new Set(longLineNums.map(function(l) { return l.lineNum - 1; }));
+
+    // Issues panel
+    document.getElementById('issuesPanel').classList.remove('hidden');
+    const list = document.getElementById('issuesList');
+    if (issues.length === 0) {
+      list.innerHTML = '<div class="no-issues">✅ No issues found — CSR is correctly formatted!</div>';
+    } else {
+      list.innerHTML = issues.map(function(issue, idx) {
+        return '<div class="issue-item" style="animation-delay:' + (idx * 0.08) + 's">' +
+          '<span class="issue-icon">' + issue.icon + '</span>' +
+          '<div><div class="issue-text">' + issue.title + '</div>' +
+          '<div class="issue-detail">' + issue.detail + '</div>' +
+          '<div class="issue-fixed">↳ ' + issue.fix + '</div></div></div>';
+      }).join('');
+    }
+
+    document.getElementById('summaryBar').innerHTML =
+      '<span class="badge ' + (issues.length ? 'badge-warn' : 'badge-ok') + '">' +
+      issues.length + ' issue' + (issues.length !== 1 ? 's' : '') + '</span>';
+
+    // Before panel
+    document.getElementById('beforeBadge').textContent = issues.length ? (issues.length + ' issue' + (issues.length !== 1 ? 's' : '')) : 'OK';
+    document.getElementById('beforeBadge').className = 'badge ' + (issues.length ? 'badge-warn' : 'badge-ok');
+
+    document.getElementById('beforeCode').innerHTML = originalLines.map(function(line, i) {
+      const t = line.trim();
+      const isDelim = /^-----[^-]+-----$/.test(t);
+      const isBegin = isDelim && i === 0;
+      const isEnd   = isDelim && i === originalLines.length - 1;
+      const isBadHeader = isDelim && i === 0 && t !== VALID_HEADER;
+      const isBadFooter = isDelim && i === originalLines.length - 1 && t !== VALID_FOOTER;
+      const isLong  = longSet.has(i);
+      let cls = 'line-body';
+      if (isBadHeader || isBadFooter || isLong) cls = 'line-warn';
+      else if (isBegin || isEnd) cls = 'line-header';
+      return '<div class="' + cls + '">' + escHtml(line) + '</div>';
+    }).join('');
+
+    // After panel
+    const afterBadge = document.getElementById('afterBadge');
+    afterBadge.textContent  = issues.length ? (issues.length + ' fixed') : 'No changes';
+    afterBadge.className    = 'badge ' + (issues.length ? 'badge-ok' : 'badge-info');
+
+    document.getElementById('afterCode').innerHTML = fixedLines.map(function(line) {
+      const isHdr = /^-----BEGIN|^-----END/i.test(line.trim());
+      return '<div class="' + (isHdr ? 'line-header' : 'line-body') + '">' + escHtml(line) + '</div>';
+    }).join('');
+
+    document.getElementById('resultsGrid').classList.remove('hidden');
+    document.getElementById('dlBtn').style.display = issues.length ? '' : 'none';
+  }
+
+  // ─── Copy / Download ───────────────────────────────────────
+  function copyText(which) {
+    const text = which === 'before' ? originalText : fixedText;
+    navigator.clipboard.writeText(text).then(function() {
+      const btn = document.querySelector('[onclick="copyText(\'' + which + '\')"]');
+      const orig = btn.textContent;
+      btn.textContent = '✓ Copied!';
+      btn.style.color = 'var(--accent)';
+      setTimeout(function() { btn.textContent = orig; btn.style.color = ''; }, 1800);
+    });
+  }
+
+  function downloadFixed() {
+    const blob = new Blob([fixedText], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    // Build output name: strip extension, append _fixed, restore extension
+    let outName = 'fixed.csr';
+    if (inputFileName) {
+      const dot = inputFileName.lastIndexOf('.');
+      if (dot > 0) {
+        outName = inputFileName.slice(0, dot) + '_fixed' + inputFileName.slice(dot);
+      } else {
+        outName = inputFileName + '_fixed';
+      }
+    }
+    a.download = outName;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  // ─── Minimal ASN.1 / DER Parser ────────────────────────────
+  function parseASN1(buf, offset) {
+    offset = offset || 0;
+    var tag = buf[offset++];
+    var lenByte = buf[offset++];
+    var len;
+    if (lenByte & 0x80) {
+      var numBytes = lenByte & 0x7f;
+      len = 0;
+      for (var k = 0; k < numBytes; k++) len = (len << 8) | buf[offset++];
+    } else {
+      len = lenByte;
+    }
+    var valueStart = offset;
+    var valueEnd   = offset + len;
+    var children   = [];
+    var constructed = (tag & 0x20) !== 0;
+    if (constructed) {
+      var pos = valueStart;
+      while (pos < valueEnd) {
+        var child = parseASN1(buf, pos);
+        children.push(child);
+        pos = child.end;
+      }
+    }
+    return { tag: tag, start: valueStart, end: valueEnd, len: len, children: children, buf: buf };
+  }
+
+  function asn1Str(node) {
+    // UTF8String, PrintableString, IA5String, T61String, BMPString
+    var t = node.tag & 0x1f;
+    if (t === 12 || t === 19 || t === 22 || t === 20) {
+      return new TextDecoder().decode(node.buf.slice(node.start, node.end));
+    }
+    if (t === 30) { // BMPString — UTF-16BE
+      var bytes = node.buf.slice(node.start, node.end);
+      var s = '';
+      for (var i = 0; i < bytes.length; i += 2) s += String.fromCharCode((bytes[i] << 8) | bytes[i+1]);
+      return s;
+    }
+    return null;
+  }
+
+  function oidBytes(node) {
+    var b = node.buf.slice(node.start, node.end);
+    var out = [Math.floor(b[0] / 40), b[0] % 40];
+    var val = 0;
+    for (var i = 1; i < b.length; i++) {
+      val = (val << 7) | (b[i] & 0x7f);
+      if (!(b[i] & 0x80)) { out.push(val); val = 0; }
+    }
+    return out.join('.');
+  }
+
+  var OID_NAMES = {
+    '2.5.4.3':  'CN',  '2.5.4.6':  'C',   '2.5.4.7':  'L',
+    '2.5.4.8':  'ST',  '2.5.4.10': 'O',   '2.5.4.11': 'OU',
+    '2.5.4.9':  'Street', '2.5.4.17': 'PostalCode',
+    '1.2.840.113549.1.1.1':  'rsaEncryption',
+    '1.2.840.113549.1.1.5':  'sha1WithRSAEncryption',
+    '1.2.840.113549.1.1.11': 'sha256WithRSAEncryption',
+    '1.2.840.113549.1.1.12': 'sha384WithRSAEncryption',
+    '1.2.840.113549.1.1.13': 'sha512WithRSAEncryption',
+    '1.2.840.10045.2.1':     'ecPublicKey',
+    '1.2.840.10045.4.3.1':   'ecdsa-with-SHA224',
+    '1.2.840.10045.4.3.2':   'ecdsa-with-SHA256',
+    '1.2.840.10045.4.3.3':   'ecdsa-with-SHA384',
+    '1.2.840.10045.4.3.4':   'ecdsa-with-SHA512',
+    '1.2.840.113549.1.9.14': 'extensionRequest',
+    '2.5.29.17': 'subjectAltName',
+    '1.2.840.10045.3.1.7':  'P-256', '1.3.132.0.34': 'P-384', '1.3.132.0.35': 'P-521',
+  };
+
+  function oidName(oid) { return OID_NAMES[oid] || oid; }
+
+  function parseSubject(rdnSeq) {
+    var fields = [];
+    rdnSeq.children.forEach(function(set) { // SET
+      set.children.forEach(function(seq) {  // SEQUENCE
+        if (seq.children.length < 2) return;
+        var oid = oidBytes(seq.children[0]);
+        var val = asn1Str(seq.children[1]);
+        if (val !== null) fields.push({ name: oidName(oid), value: val });
+      });
+    });
+    return fields;
+  }
+
+  function parseSANs(extValueBuf) {
+    // extValueBuf is the OCTET STRING contents wrapping a SEQUENCE of GeneralNames
+    try {
+      var outer = parseASN1(extValueBuf, 0); // OCTET STRING already unwrapped
+      var seq = outer; // should be SEQUENCE
+      if ((seq.tag & 0x1f) === 4) seq = parseASN1(extValueBuf.slice(seq.start, seq.end), 0);
+      var names = [];
+      seq.children.forEach(function(gn) {
+        var gnTag = gn.tag & 0x1f;
+        var bytes = gn.buf.slice(gn.start, gn.end);
+        if (gnTag === 2) names.push({ type: 'DNS', value: new TextDecoder().decode(bytes) });
+        else if (gnTag === 7) {
+          if (bytes.length === 4) names.push({ type: 'IP', value: bytes[0]+'.'+bytes[1]+'.'+bytes[2]+'.'+bytes[3] });
+          else names.push({ type: 'IP', value: Array.from(bytes).map(function(b){ return b.toString(16).padStart(2,'0'); }).join(':') });
+        } else if (gnTag === 1) names.push({ type: 'Email', value: new TextDecoder().decode(bytes) });
+        else if (gnTag === 6) names.push({ type: 'URI', value: new TextDecoder().decode(bytes) });
+      });
+      return names;
+    } catch(e) { return []; }
+  }
+
+  function getRSAKeyBits(spki) {
+    // spki: SEQUENCE { SEQUENCE{oid,null}, BIT STRING }
+    try {
+      var bs = spki.children[1]; // BIT STRING
+      var keyBytes = bs.buf.slice(bs.start + 1, bs.end); // skip unused-bits byte
+      var keySeq = parseASN1(keyBytes, 0); // SEQUENCE { INTEGER(n), INTEGER(e) }
+      var modNode = keySeq.children[0]; // modulus INTEGER
+      var modLen = modNode.len;
+      if (modNode.buf[modNode.start] === 0) modLen--; // strip leading zero
+      return modLen * 8;
+    } catch(e) { return null; }
+  }
+
+  function decodeCSRDetails(b64) {
+    // Decode base64 -> Uint8Array
+    var bin = atob(b64);
+    var buf = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+
+    var root = parseASN1(buf, 0);
+    // CertificationRequest ::= SEQUENCE { certificationRequestInfo, signatureAlgorithm, signature }
+    if (!root || !root.children || root.children.length < 3) return null;
+
+    var cri    = root.children[0]; // CertificationRequestInfo
+    var sigAlg = root.children[1]; // AlgorithmIdentifier
+    // CertificationRequestInfo ::= SEQUENCE { version, subject, subjectPKInfo, attributes }
+    if (!cri.children || cri.children.length < 4) return null;
+
+    var subject   = cri.children[1]; // Name (RDN SEQUENCE)
+    var spkiNode  = cri.children[2]; // SubjectPublicKeyInfo
+    var attrsNode = cri.children[3]; // [0] Attributes
+
+    var result = {};
+
+    // Subject fields
+    result.subject = parseSubject(subject);
+
+    // Signature algorithm
+    var sigOid = oidBytes(sigAlg.children[0]);
+    result.sigAlg = oidName(sigOid);
+
+    // Public key info
+    var pkAlgOid = oidBytes(spkiNode.children[0].children[0]);
+    result.keyAlg = oidName(pkAlgOid);
+    if (result.keyAlg === 'rsaEncryption' || result.keyAlg.toLowerCase().includes('rsa')) {
+      var bits = getRSAKeyBits(spkiNode);
+      result.keyInfo = bits ? 'RSA ' + bits + '-bit' : 'RSA';
+    } else if (result.keyAlg === 'ecPublicKey') {
+      var curveOid = spkiNode.children[0].children.length > 1 ? oidBytes(spkiNode.children[0].children[1]) : '';
+      result.keyInfo = 'EC (' + oidName(curveOid) + ')';
+    } else {
+      result.keyInfo = result.keyAlg;
+    }
+
+    // Extensions from attributes
+    result.sans = [];
+    if (attrsNode && attrsNode.children) {
+      attrsNode.children.forEach(function(attr) {
+        if (!attr.children || attr.children.length < 2) return;
+        var attrOid = oidBytes(attr.children[0]);
+        if (attrOid === '1.2.840.113549.1.9.14') { // extensionRequest
+          // SET > SEQUENCE of extensions
+          var extSet = attr.children[1];
+          var extSeq = extSet.children[0]; // SEQUENCE of extensions
+          extSeq.children.forEach(function(ext) {
+            if (!ext.children || ext.children.length < 2) return;
+            var extOid = oidBytes(ext.children[0]);
+            if (extOid === '2.5.29.17') { // SAN
+              // value is OCTET STRING
+              var octet = ext.children[ext.children.length - 1];
+              var octBytes = octet.buf.slice(octet.start, octet.end);
+              result.sans = parseSANs(octBytes);
+            }
+          });
+        }
+      });
+    }
+
+    return result;
+  }
+
+  // ─── Render Details Panel ──────────────────────────────────
+  function renderDetails(b64) {
+    var panel = document.getElementById('detailsPanel');
+    var grid  = document.getElementById('detailsGrid');
+    panel.classList.remove('hidden');
+
+    var info;
+    try { info = decodeCSRDetails(b64); } catch(e) { info = null; }
+
+    if (!info) {
+      grid.innerHTML = '<div class="detail-parse-error">⚠ Could not decode CSR contents — the base64 body may not be valid DER.</div>';
+      return;
+    }
+
+    var html = '';
+
+    // Subject section
+    html += '<div class="detail-section-title">Subject</div>';
+    var subjectOrder = ['CN','O','OU','L','ST','C','Street','PostalCode'];
+    var subjectMap = {};
+    info.subject.forEach(function(f) { subjectMap[f.name] = f.value; });
+    var rendered = {};
+    subjectOrder.forEach(function(name) {
+      if (subjectMap[name]) {
+        html += detailRow(name, subjectMap[name], name === 'CN' ? 'accent' : '');
+        rendered[name] = true;
+      }
+    });
+    info.subject.forEach(function(f) {
+      if (!rendered[f.name]) html += detailRow(f.name, f.value, '');
+    });
+    if (info.subject.length === 0) html += detailRow('Subject', '(empty)', 'warn');
+
+    // Key & Signature section
+    html += '<div class="detail-section-title">Key & Signature</div>';
+    html += detailRow('Public Key', info.keyInfo, 'accent2');
+    html += detailRow('Signature Algorithm', info.sigAlg, '');
+
+    // SANs section
+    if (info.sans && info.sans.length > 0) {
+      html += '<div class="detail-section-title">Subject Alternative Names (' + info.sans.length + ')</div>';
+      html += '<div class="detail-item" style="grid-column:1/-1"><div class="san-list">';
+      info.sans.forEach(function(san) {
+        html += '<span class="san-tag">' + escHtml(san.type + ': ' + san.value) + '</span>';
+      });
+      html += '</div></div>';
+    }
+
+    grid.innerHTML = html;
+  }
+
+  function detailRow(label, value, cls) {
+    return '<div class="detail-item"><div class="detail-label">' + escHtml(label) +
+      '</div><div class="detail-value ' + (cls||'') + '">' + escHtml(value) + '</div></div>';
+  }
+
+</script>
+</body>
+</html>
